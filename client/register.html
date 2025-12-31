@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | ISTE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .radio-option input {
+            width: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .members-list {
+            background: var(--color-bg);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+        }
+
+        .member-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .add-member-btn {
+            font-size: 0.9rem;
+            color: var(--color-accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            display: none;
+        }
+
+        .status-message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <a href="/" class="logo">ISTE<span class="highlight">.</span></a>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container">
+            <div class="form-container">
+                <h1 class="section-title" style="margin-bottom: 0.5rem;">Event Registration</h1>
+                <p id="event-name-display" style="margin-bottom: 2rem; color: var(--color-text-muted);">Loading event
+                    details...</p>
+
+                <form id="registration-form">
+                    <input type="hidden" id="eventId" name="eventId">
+
+                    <div class="form-group">
+                        <label>Participation Type</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="type" value="Individual" checked
+                                    onchange="toggleTeamFields()"> Individual
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="type" value="Team" onchange="toggleTeamFields()"> Team
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Personal / Leader Details -->
+                    <div class="form-group">
+                        <label for="participantName">Full Name (Team Leader)</label>
+                        <input type="text" id="participantName" name="participantName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="college">College Name</label>
+                        <input type="text" id="college" name="college" required>
+                    </div>
+
+                    <!-- Team Fields -->
+                    <div id="team-fields" class="hidden">
+                        <div class="form-group">
+                            <label for="teamName">Team Name</label>
+                            <input type="text" id="teamName" name="teamName">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Team Members</label>
+                            <div id="members-container" class="members-list">
+                                <!-- Dynamic rows -->
+                            </div>
+                            <button type="button" class="add-member-btn" onclick="addMemberRow()">+ Add Member</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Scan to Pay</label>
+                        <div
+                            style="text-align: center; margin-bottom: 1rem; border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-sm); display: inline-block;">
+                            <img src="assets/images/qr-code.png" alt="Payment QR Code"
+                                style="max-width: 200px; display: block;">
+                            <span
+                                style="display: block; margin-top: 0.5rem; font-size: 0.9rem; color: var(--color-text-muted);">UPI
+                                ID: club@upi</span>
+                        </div>
+
+                        <label for="paymentReference">Payment Reference (UTR / Transaction ID)</label>
+                        <input type="text" id="paymentReference" name="paymentReference"
+                            placeholder="e.g. UPI1234567890">
+                        <small style="color: var(--color-text-muted);">Please complete payment using the QR code above
+                            before submitting.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+
+                    <div id="status-message" class="status-message"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/registration.js"></script>
+</body>
+
+</html>

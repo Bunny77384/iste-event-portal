@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events | ISTE ISTE Student Chapter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Specific page styles */
+        .page-header {
+            background-color: var(--color-surface);
+            padding: 4rem 0 2rem;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+
+        .event-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .event-date {
+            color: var(--color-accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--color-primary);
+        }
+
+        .event-desc {
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: auto;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-main);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--color-surface);
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: var(--shadow-md);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-muted);
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section h3 {
+            font-size: 1.1rem;
+            color: var(--color-primary-light);
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 0.25rem;
+            display: inline-block;
+        }
+
+        .rules-list {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: var(--color-text-main);
+        }
+
+        .rules-list li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <a href="/" class="logo">ISTE<span class="highlight">.</span></a>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/events.html" class="nav-link active">Events</a></li>
+                    <li><a href="/admin/login.html" class="nav-link admin-link">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <h1 class="section-title">All Events</h1>
+                <p>Browse our upcoming technical workshops and competitions.</p>
+            </div>
+        </div>
+
+        <div class="container section">
+            <div class="events-grid" id="events-list">
+                <!-- Loaded via JS -->
+                <div class="loading-state">Loading events...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Event Details Modal -->
+    <div id="event-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2 class="modal-title" id="m-title">Event Title</h2>
+            <div class="event-meta" style="margin-bottom: 2rem;">
+                <span id="m-date">Date</span> • <span id="m-venue">Venue</span> • <span id="m-fee">Fee</span>
+            </div>
+
+            <div class="modal-section">
+                <h3>Description</h3>
+                <p id="m-desc">Description goes here.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3>Rules & Regulations</h3>
+                <ul class="rules-list" id="m-rules">
+                    <li>Rule 1</li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: right;">
+                <a href="#" id="m-register-btn" class="btn btn-primary">Proceed to Register &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ISTE Student Chapter. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script>
+        let allEvents = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchEvents();
+        });
+
+        async function fetchEvents() {
+            const container = document.getElementById('events-list');
+            try {
+                const API_URL = `${API_BASE_URL}/api/events`;
+                const response = await fetch(API_URL);
+
+                if (!response.ok) throw new Error('Failed to fetch events');
+
+                allEvents = await response.json();
+
+                if (allEvents.length === 0) {
+                    container.innerHTML = '<p>No upcoming events found.</p>';
+                    return;
+                }
+
+                container.innerHTML = allEvents.map(event => `
+                    <div class="event-card">
+                        <div class="event-date">${new Date(event.date).toLocaleDateString()}</div>
+                        <h3 class="event-title">${event.title}</h3>
+                        <p class="event-desc">${event.description}</p>
+                        <div class="event-meta">
+                            <span>📍 ${event.venue}</span>
+                            <span>💵 ${event.registrationFee === 0 ? 'Free' : '₹' + event.registrationFee}</span>
+                        </div>
+                        <div class="card-actions">
+                            <button onclick="openModal('${event._id}')" class="btn btn-outline" style="flex:1;">View Details</button>
+                            <a href="register?id=${event._id}" class="btn btn-primary" style="flex:1; text-align:center;">Register</a>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<p class="error">Unable to load events at this time.</p>';
+            }
+        }
+
+        function openModal(id) {
+            const event = allEvents.find(e => e._id === id);
+            if (!event) return;
+
+            document.getElementById('m-title').textContent = event.title;
+            document.getElementById('m-date').textContent = new Date(event.date).toLocaleDateString();
+            document.getElementById('m-venue').textContent = '📍 ' + event.venue;
+            document.getElementById('m-fee').textContent = '💵 ₹' + event.registrationFee;
+            document.getElementById('m-desc').textContent = event.description;
+
+            const rulesList = document.getElementById('m-rules');
+            rulesList.innerHTML = event.rules && event.rules.length > 0
+                ? event.rules.map(r => `<li>${r}</li>`).join('')
+                : '<li>No specific rules listed.</li>';
+
+            document.getElementById('m-register-btn').href = `register?id=${id}`;
+
+            document.getElementById('event-modal').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeModal() {
+            document.getElementById('event-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on click outside
+        document.getElementById('event-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'event-modal') closeModal();
+        });
+    </script>
+</body>
+
+</html>

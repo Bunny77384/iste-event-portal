@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .stat-label {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: var(--color-primary-light);
+        }
+
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge-verified {
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--color-accent);
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <span class="logo">Admin Panel</span>
+            <button onclick="logout()" class="btn btn-secondary"
+                style="padding: 0.5rem 1rem; font-size: 0.9rem;">Logout</button>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container">
+            <h1 class="section-title" style="margin-bottom: 2rem;">Overview</h1>
+
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-events">-</div>
+                    <div class="stat-label">Total Events</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-regs">-</div>
+                    <div class="stat-label">Registrations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-pending">-</div>
+                    <div class="stat-label">Pending Payments</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h2 class="section-title">Recent Registrations</h2>
+                <button class="btn btn-primary" onclick="exportData()">Export CSV</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reg ID</th>
+                            <th>Event</th>
+                            <th>Participant</th>
+                            <th>Type</th>
+                            <th>Payment Ref</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrations-body">
+                        <tr>
+                            <td colspan="7" style="text-align:center;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/config.js"></script>
+    <script>
+        const token = localStorage.getItem('admin_token');
+        if (!token) window.location.href = 'login.html';
+
+        document.addEventListener('DOMContentLoaded', fetchDashboardData);
+
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    logout();
+                    return;
+                }
+
+                const data = await res.json();
+
+                // Update Stats
+                document.getElementById('stat-events').textContent = data.stats.totalEvents;
+                document.getElementById('stat-regs').textContent = data.stats.totalRegistrations;
+                document.getElementById('stat-pending').textContent = data.stats.pendingPayments;
+
+                // Update Table
+                const tbody = document.getElementById('registrations-body');
+                if (data.registrations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No registrations found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.registrations.map(reg => `
+                    <tr>
+                        <td style="font-family:monospace;">${reg.registrationId}</td>
+                        <td>${reg.eventId ? reg.eventId.title : 'Deleted Event'}</td>
+                        <td>
+                            <div>${reg.participantName}</div>
+                            <small style="color: grey;">${reg.email}</small>
+                        </td>
+                        <td>${reg.type} ${reg.type === 'Team' ? `(${reg.teamName})` : ''}</td>
+                        <td>${reg.paymentReference || '-'}</td>
+                        <td>
+                            <span class="badge ${reg.paymentStatus === 'Verified' ? 'badge-verified' : 'badge-pending'}">
+                                ${reg.paymentStatus}
+                            </span>
+                        </td>
+                        <td>
+                            ${reg.paymentStatus === 'Pending' ?
+                        `<button class="action-btn" onclick="verifyPayment('${reg.registrationId}')">Verify</button>` :
+                        '<span style="color:green;">✓</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function verifyPayment(regId) {
+            if (!confirm('Mark payment as verified for ' + regId + '?')) return;
+
+            try {
+                await fetch(`${API_BASE_URL}/api/admin/registrations/${regId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ paymentStatus: 'Verified', status: 'Confirmed' })
+                });
+                fetchDashboardData();
+            } catch (err) {
+                alert('Error updating status');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        }
+
+        function exportData() {
+            alert('Export functionality would generate a CSV here.');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISTE | Student Chapter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <a href="/" class="logo">ISTE<span class="highlight">.</span></a>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="/" class="nav-link active">Home</a></li>
+                    <li><a href="/events.html" class="nav-link">Events</a></li>
+                    <li><a href="/admin/login.html" class="nav-link admin-link">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1 class="hero-title">Indian Society for<br>Technical Education</h1>
+                <p class="hero-subtitle">The official Student Chapter event portal. Fostering technical education and
+                    innovation through workshops, hackathons, and symposiums.</p>
+                <div class="hero-cta">
+                    <a href="/events.html" class="btn btn-primary">Browse Events</a>
+                    <a href="#contact" class="btn btn-secondary">Contact Us</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="featured-events section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Upcoming Events</h2>
+                    <a href="/events.html" class="view-all">View All &rarr;</a>
+                </div>
+                <div class="events-grid" id="featured-events-container">
+                    <!-- Events will be dynamically injected here -->
+                    <div class="loading-state">Loading events...</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact section">
+            <div class="container">
+                <h2 class="section-title">Get in Touch</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3>ISTE Club Headquarters</h3>
+                        <p>P.E.S. College of Engineering</p>
+                        <p>Mandya, Karnataka - 571401</p>
+                        <p>Email: mithundamodhar@gmail.com</p><!--iste@pesce.ac.in-->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ISTE Student Chapter. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

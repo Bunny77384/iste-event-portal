@@ -1,0 +1,11 @@
+{
+    "version": 2,
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "rewrites": [
+        {
+            "source": "/api/:match*",
+            "destination": "https://your-backend-url.onrender.com/api/:match*"
+        }
+    ]
+}
