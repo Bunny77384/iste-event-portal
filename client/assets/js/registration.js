@@ -115,12 +115,20 @@ document.getElementById('registration-form').addEventListener('submit', async (e
     }
 
     try {
+        console.log('Using API:', API_BASE_URL);
         const res = await fetch(`${API_BASE_URL}/api/register`, {
             method: 'POST',
             body: submissionFormData
         });
 
-        const result = await res.json();
+        const responseText = await res.text();
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Non-JSON response:', responseText);
+            throw new Error(`Server Error: Received HTML instead of JSON. \n\nPreview: ${responseText.substring(0, 200)}...`);
+        }
 
         if (res.ok) {
             let msg = `Registration Successful! ID: ${result.registrationId}`;
