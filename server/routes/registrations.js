@@ -13,9 +13,15 @@ const path = require('path');
 const Tesseract = require('tesseract.js');
 
 // Configure Multer Storage
+const fs = require('fs');
+const uploadDir = 'uploads/';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
         cb(null, 'PAY-' + Date.now() + path.extname(file.originalname));
@@ -30,11 +36,6 @@ const generateRegId = () => {
 // POST /api/register
 router.post('/', upload.single('paymentScreenshot'), async (req, res) => {
     try {
-        // Parse body (because multipart form data makes everything strings)
-        // If members is stringified JSON (from client), parse it.
-        // But our client logic sends individual fields, let's see. 
-        // Best approach: Client should send stringified JSON for members.
-
         let {
             eventId, participantName, email, phone, college,
             type, teamName, members, paymentReference
@@ -68,14 +69,11 @@ router.post('/', upload.single('paymentScreenshot'), async (req, res) => {
         if (req.file && paymentReference) {
             console.log('Starting OCR for:', req.file.path);
             try {
-                // Determine absolute path for Tesseract
-                // const absPath = path.resolve(req.file.path); 
-                // Tesseract works well with file paths in Node
-                const { data: { text } } = await Tesseract.recognize(
-                    req.file.path,
-                    'eng',
-                    //{ logger: m => console.log(m) }
-                );
+                // Tesseract Execution with Timeout and Error Handling
+                const { data: { text } } = await Promise.race([
+                    Tesseract.recognize(req.file.path, 'eng'),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('OCR Timeout')), 10000))
+                ]);
 
                 const cleanOCR = text.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                 const cleanRef = paymentReference.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
@@ -88,8 +86,8 @@ router.post('/', upload.single('paymentScreenshot'), async (req, res) => {
                     ocrMatchStatus = 'Mismatch';
                 }
             } catch (ocrErr) {
-                console.error('OCR Failed:', ocrErr);
-                ocrMatchStatus = 'Error';
+                console.error('OCR Process Failed (Continuing reg):', ocrErr.message);
+                ocrMatchStatus = 'Error'; // Don't block registration
             }
         }
 
