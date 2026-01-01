@@ -5,8 +5,8 @@ const getApiBaseUrl = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:5000';
     }
-    // On production (Vercel), use relative path which is handled by vercel.json rewrites
-    return '';
+    // For Production (Vercel), we hit Render backend directly to avoid proxy config issues
+    return 'https://iste-event-portal.onrender.com';
 };
 
 const API_BASE_URL = getApiBaseUrl();
