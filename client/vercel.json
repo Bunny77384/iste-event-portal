@@ -5,7 +5,7 @@
     "rewrites": [
         {
             "source": "/api/:match*",
-            "destination": "https://iste-event-portal.onrender.com"
+            "destination": "https://iste-event-portal.onrender.com/api/:match*"
         }
     ]
 }
