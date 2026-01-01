@@ -46,12 +46,19 @@ function toggleTeamFields() {
 
 function addMemberRow() {
     const container = document.getElementById('members-container');
+    // Max 3 additional members (Total 4 including Lead)
+    if (container.children.length >= 3) {
+        alert('Maximum team size is 4 (including the Team Lead). You cannot add more members.');
+        return;
+    }
+
     const index = container.children.length + 1;
     const div = document.createElement('div');
     div.className = 'member-row';
     div.innerHTML = `
         <input type="text" placeholder="Member ${index} Name" class="member-name">
         <input type="text" placeholder="Member ${index} Email (Optional)" class="member-email">
+        <button type="button" onclick="this.parentElement.remove()" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-left:10px;">X</button>
     `;
     container.appendChild(div);
 }
@@ -62,13 +69,9 @@ document.getElementById('registration-form').addEventListener('submit', async (e
     const btn = e.target.querySelector('button[type="submit"]');
     const msgObj = document.getElementById('status-message');
 
-    btn.disabled = true;
-    btn.textContent = 'Processing...';
-    msgObj.style.display = 'none';
-
     // Gather Data
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+    const initialFormData = new FormData(e.target);
+    const data = Object.fromEntries(initialFormData.entries());
 
     // Handle Members manually
     if (data.type === 'Team') {
@@ -77,29 +80,61 @@ document.getElementById('registration-form').addEventListener('submit', async (e
             name: row.querySelector('.member-name').value,
             email: row.querySelector('.member-email').value
         })).filter(m => m.name.trim() !== ''); // Filter empty
+
+        // Validation: Min Team Size 3 (Lead + 2 members)
+        if (data.members.length < 2) {
+            alert('Team size must be at least 3 members (You + 2 others). Please add more members.');
+            return;
+        }
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    msgObj.style.display = 'none';
+
+    // Prepare FormData For Submission (Required for File Uploads)
+
+    // Prepare FormData For Submission (Required for File Uploads)
+    const submissionFormData = new FormData();
+    submissionFormData.append('eventId', data.eventId);
+    submissionFormData.append('participantName', data.participantName);
+    submissionFormData.append('email', data.email);
+    submissionFormData.append('phone', data.phone);
+    submissionFormData.append('college', data.college);
+    submissionFormData.append('type', data.type);
+    submissionFormData.append('paymentReference', data.paymentReference);
+
+    if (data.type === 'Team') {
+        submissionFormData.append('teamName', data.teamName);
+        submissionFormData.append('members', JSON.stringify(data.members));
+    }
+
+    const fileInput = document.getElementById('paymentScreenshot');
+    if (fileInput.files.length > 0) {
+        submissionFormData.append('paymentScreenshot', fileInput.files[0]);
     }
 
     try {
         const res = await fetch(`${API_BASE_URL}/api/register`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: submissionFormData
         });
 
         const result = await res.json();
 
         if (res.ok) {
-            msgObj.className = 'status-message success';
-            msgObj.innerHTML = `Success! Check your email. Registration ID: <strong>${result.registrationId}</strong>`;
-            msgObj.style.display = 'block';
-            e.target.reset();
-            setTimeout(() => window.location.href = '/events.html', 3000); // Redirect after success
+            let msg = `Registration Successful! ID: ${result.registrationId}`;
+            if (result.ocrStatus === 'Matched') msg += '\n✅ Payment verified automatically!';
+            else if (result.ocrStatus === 'Mismatch') msg += '\n⚠ Payment verification pending (Manual review required).';
+
+            alert(msg);
+            window.location.href = '/events.html';
         } else {
             throw new Error(result.message || 'Registration failed');
         }
     } catch (err) {
-        msgObj.className = 'status-message error';
         msgObj.textContent = err.message;
+        msgObj.className = 'status-message error';
         msgObj.style.display = 'block';
     } finally {
         btn.disabled = false;

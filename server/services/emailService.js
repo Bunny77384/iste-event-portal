@@ -15,7 +15,7 @@ const sendAcknowledgement = async (registration) => {
   }
 
   const mailOptions = {
-    from: `"Tech Club Events" <${process.env.EMAIL_USER}>`,
+    from: `"ISTE PESCE" <${process.env.EMAIL_USER}>`,
     to: registration.email,
     subject: `Registration Confirmed: ${registration.eventName}`,
     html: `
@@ -34,8 +34,8 @@ const sendAcknowledgement = async (registration) => {
         
         <p style="margin-top: 30px; font-size: 12px; color: #666;">
           Regards,<br>
-          Tech Club Team<br>
-          College Name
+          INDIAN SOCIETY FOR TECHNICAL EDUCATION<br>
+          PESCE.
         </p>
       </div>
     `
@@ -55,7 +55,7 @@ const sendVerificationSuccess = async (registration) => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const mailOptions = {
-    from: `"Tech Club Events" <${process.env.EMAIL_USER}>`,
+    from: `"ISTE PESCE" <${process.env.EMAIL_USER}>`,
     to: registration.email,
     subject: `Payment Verified: ${registration.eventName}`,
     html: `
@@ -73,7 +73,8 @@ const sendVerificationSuccess = async (registration) => {
         
         <p style="margin-top: 30px; font-size: 12px; color: #666;">
           Regards,<br>
-          Tech Club Team
+          INDIAN SOCIETY FOR TECHNICAL EDUCATION<br>
+          PESCE.
         </p>
       </div>
     `

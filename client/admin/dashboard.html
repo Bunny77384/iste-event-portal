@@ -91,7 +91,13 @@
 <body>
     <header class="header">
         <div class="container header-container">
-            <span class="logo">Admin Panel</span>
+            <div style="display:flex; align-items:center; gap:2rem;">
+                <span class="logo">Admin Panel</span>
+                <nav>
+                    <a href="/" class="nav-link" style="color:var(--color-primary); margin-right: 1rem;">Home</a>
+                    <a href="/events.html" class="nav-link" style="color:var(--color-primary);">Events</a>
+                </nav>
+            </div>
             <button onclick="logout()" class="btn btn-secondary"
                 style="padding: 0.5rem 1rem; font-size: 0.9rem;">Logout</button>
         </div>
@@ -144,12 +150,24 @@
         </div>
     </main>
 
-    <script src="../assets/js/config.js"></script>
     <script>
+        // Immediate Auth Check to prevent flicker
         const token = localStorage.getItem('admin_token');
         if (!token) window.location.href = 'login.html';
 
+        // Prevent Back Button after Logout
+        window.history.pushState(null, null, window.location.href);
+        window.onpopstate = function () {
+            window.history.go(1);
+        };
+    </script>
+    <script src="../assets/js/config.js"></script>
+    <script>
+        // const token = localStorage.getItem('admin_token'); // Already checked above
+
         document.addEventListener('DOMContentLoaded', fetchDashboardData);
+
+        let allRegistrations = []; // Store data globally for export
 
         async function fetchDashboardData() {
             try {
@@ -163,6 +181,7 @@
                 }
 
                 const data = await res.json();
+                allRegistrations = data.registrations || [];
 
                 // Update Stats
                 document.getElementById('stat-events').textContent = data.stats.totalEvents;
@@ -184,8 +203,21 @@
                             <div>${reg.participantName}</div>
                             <small style="color: grey;">${reg.email}</small>
                         </td>
-                        <td>${reg.type} ${reg.type === 'Team' ? `(${reg.teamName})` : ''}</td>
-                        <td>${reg.paymentReference || '-'}</td>
+                        <td>
+                            ${reg.type} ${reg.type === 'Team' ? `(${reg.teamName})` : ''}
+                        </td>
+                        <td>
+                            <div style="font-weight:bold;">${reg.paymentReference || '-'}</div>
+                            ${reg.ocrMatchStatus && reg.ocrMatchStatus !== 'Pending' ?
+                        `<small style="display:block; font-size:0.75rem; color:${reg.ocrMatchStatus === 'Matched' ? 'green' : 'red'};">
+                                    OCR: ${reg.ocrMatchStatus}
+                                </small>` : ''}
+                            
+                            ${reg.paymentScreenshot ?
+                        `<a href="${API_BASE_URL}/${reg.paymentScreenshot}" target="_blank" style="display:inline-block; margin-top:0.2rem; font-size:0.8rem; color: #2563eb; text-decoration: underline;">
+                                    View Screenshot
+                                </a>` : '<small style="color:grey;">No Image</small>'}
+                        </td>
                         <td>
                             <span class="badge ${reg.paymentStatus === 'Verified' ? 'badge-verified' : 'badge-pending'}">
                                 ${reg.paymentStatus}
@@ -228,7 +260,48 @@
         }
 
         function exportData() {
-            alert('Export functionality would generate a CSV here.');
+            if (!allRegistrations || allRegistrations.length === 0) {
+                alert('No data to export.');
+                return;
+            }
+
+            // CSV Headers
+            const headers = ['Registration ID', 'Event', 'Participant Name', 'Email', 'Phone', 'College', 'Type', 'Team Name', 'Members', 'Payment Ref', 'OCR Status', 'Payment Status', 'Status', 'Date'];
+
+            // CSV Rows
+            const rows = allRegistrations.map(reg => [
+                reg.registrationId,
+                reg.eventId ? reg.eventId.title.replace(/,/g, ' ') : 'Deleted Event',
+                reg.participantName.replace(/,/g, ' '),
+                reg.email,
+                reg.phone,
+                reg.college.replace(/,/g, ' '),
+                reg.type,
+                reg.teamName ? reg.teamName.replace(/,/g, ' ') : '-',
+                reg.members ? `"${reg.members.map(m => m.name).join('; ')}"` : '-',
+                reg.paymentReference || '-',
+                reg.ocrMatchStatus || '-',
+                reg.paymentStatus,
+                reg.status,
+                new Date(reg.createdAt).toISOString().split('T')[0] // Return YYYY-MM-DD
+            ]);
+
+            // Combine
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n');
+
+            // Download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `registrations_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>

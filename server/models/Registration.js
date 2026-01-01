@@ -23,7 +23,9 @@ const registrationSchema = new mongoose.Schema({
     members: [memberSchema],
 
     // Payment
-    paymentReference: { type: String }, // UTR or Transaction ID
+    paymentReference: { type: String },
+    paymentScreenshot: { type: String }, // Path to file
+    ocrMatchStatus: { type: String, default: 'Pending' }, // 'Matched', 'Mismatch', 'Pending'
     paymentStatus: { type: String, enum: ['Pending', 'Verified', 'Failed'], default: 'Pending' },
 
     // Meta
