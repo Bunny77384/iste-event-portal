@@ -77,6 +77,55 @@ router.patch('/registrations/:id', verifyToken, async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
-});
+    // Debug Email Route
+    router.get('/debug-email', async (req, res) => {
+        try {
+            const nodemailer = require('nodemailer');
 
-module.exports = router;
+            // 1. Check Env Vars
+            const userSet = !!process.env.EMAIL_USER;
+            const passSet = !!process.env.EMAIL_PASS;
+            const service = process.env.EMAIL_SERVICE;
+
+            if (!userSet || !passSet) {
+                return res.status(500).json({
+                    status: 'Error',
+                    message: 'Environment variables missing',
+                    details: { EMAIL_USER: userSet, EMAIL_PASS: passSet, EMAIL_SERVICE: service }
+                });
+            }
+
+            // 2. Create Transporter
+            const transporter = nodemailer.createTransport({
+                service: service || 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+
+            // 3. Verify Connection
+            await transporter.verify();
+
+            res.json({
+                status: 'Success',
+                message: 'SMTP Connection Verified Successfully',
+                config: {
+                    user: process.env.EMAIL_USER,
+                    service: service
+                }
+            });
+
+        } catch (err) {
+            console.error('Debug Email Error:', err);
+            res.status(500).json({
+                status: 'Failed',
+                message: 'SMTP Connection Failed',
+                error: err.message,
+                code: err.code,
+                command: err.command
+            });
+        }
+    });
+
+    module.exports = router;
